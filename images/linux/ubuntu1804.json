@@ -1,5 +1,20 @@
 {
     "variables": {
+        "vm_name": "ubuntu1804",
+        "cpus": "4",
+        "memory": "4096",
+        "disk_size": "65536",
+        "locale": "en_US.UTF-8",
+        "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.5-server-amd64.iso",
+        "iso_checksum": "8c5fc24894394035402f66f3824beb7234b757dd2b5531379cb310cedfdf0996",
+        "iso_checksum_type": "sha256",
+        "hostname": "vagrant",
+        "ssh_username": "vagrant",
+        "ssh_password": "vagrant",
+        "install_vagrant_key": "true",
+        "boot_command_prefix": "<esc><esc><enter><wait>",
+        "preseed" : "preseed.cfg",
+        "headless": "",
         "client_id": "{{env `ARM_CLIENT_ID`}}",
         "client_secret": "{{env `ARM_CLIENT_SECRET`}}",
         "subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
@@ -27,30 +42,60 @@
     ],
     "builders": [
         {
-            "type": "azure-arm",
-            "client_id": "{{user `client_id`}}",
-            "client_secret": "{{user `client_secret`}}",
-            "subscription_id": "{{user `subscription_id`}}",
-            "tenant_id": "{{user `tenant_id`}}",
-            "location": "{{user `location`}}",
-            "vm_size": "{{user `vm_size`}}",
-            "resource_group_name": "{{user `resource_group`}}",
-            "storage_account": "{{user `storage_account`}}",
-            "temp_resource_group_name": "{{user `temp_resource_group_name`}}",
-            "capture_container_name": "images",
-            "capture_name_prefix": "{{user `capture_name_prefix`}}",
-            "virtual_network_name": "{{user `virtual_network_name`}}",
-            "virtual_network_resource_group_name": "{{user `virtual_network_resource_group_name`}}",
-            "virtual_network_subnet_name": "{{user `virtual_network_subnet_name`}}",
-            "private_virtual_network_with_public_ip": "{{user `private_virtual_network_with_public_ip`}}",
-            "os_type": "Linux",
-            "image_publisher": "Canonical",
-            "image_offer": "UbuntuServer",
-            "image_sku": "18.04-LTS",
-            "os_disk_size_gb": "86"
+            "type": "qemu",
+            "boot_command": [
+                "{{ user `boot_command_prefix` }}",
+                "/install/vmlinuz noapic ",
+                "file=/floppy/{{ user `preseed` }}  ",
+                "debian-installer={{ user `locale` }} auto locale={{ user `locale` }} kbd-chooser/method=us ",
+                "hostname={{ user `hostname` }} ",
+                "fb=false  debconf/frontend=noninteractive ",
+                "keyboard-configuration/modelcode=SKIP ",
+                "keyboard-configuration/layout=USA ",
+                "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+                "passwd/user-fullname={{ user `ssh_username` }} ",
+                "passwd/user-password={{ user `ssh_password` }} ",
+                "passwd/user-password-again={{ user `ssh_password` }} ",
+                "passwd/username={{ user `ssh_username` }} ",
+                "initrd=/install/initrd.gz -- <enter>"
+            ],
+            "disk_size": "{{ user `disk_size` }}",
+            "floppy_files": [
+                "config/{{ user `preseed` }}"
+            ],
+            "headless": "{{ user `headless` }}",
+            "iso_checksum": "{{ user `iso_checksum` }}",
+            "iso_checksum_type": "{{ user `iso_checksum_type` }}",
+            "iso_urls": [
+                "{{ user `iso_url` }}"
+            ],
+            "output_directory": "/scratch/tmp/packer/output-{{ user `vm_name` }}",
+            "shutdown_command": "echo  '{{ user `ssh_password` }}'|sudo -S shutdown -P now",
+            "ssh_password": "{{ user `ssh_password` }}",
+            "ssh_username": "{{ user `ssh_username` }}",
+            "ssh_wait_timeout": "10000s",
+            "vm_name": "{{ user `vm_name` }}",
+            "cpus": "{{ user `cpus`}}",
+            "memory": "{{ user `memory` }}",
+            "qemuargs": [
+                [ "-display", "none" ],
+                [ "-machine", "accel=kvm" ]
+            ]
         }
     ],
     "provisioners": [
+        {
+            "environment_vars": [
+                "INSTALL_VAGRANT_KEY={{user `install_vagrant_key`}}",
+                "SSH_USERNAME={{user `ssh_username`}}",
+                "SSH_PASSWORD={{user `ssh_password`}}"
+            ],
+            "execute_command": "echo '{{ user `ssh_password` }}' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+            "scripts": [
+                "scripts/base/vagrant.sh"
+            ],
+            "type": "shell"
+        },
         {
             "type": "shell",
             "inline": [
@@ -176,24 +221,17 @@
                 "{{template_dir}}/scripts/installers/azure-devops-cli.sh",
                 "{{template_dir}}/scripts/installers/basic.sh",
                 "{{template_dir}}/scripts/installers/aliyun-cli.sh",
-                "{{template_dir}}/scripts/installers/aws.sh",
                 "{{template_dir}}/scripts/installers/build-essential.sh",
                 "{{template_dir}}/scripts/installers/clang.sh",
-                "{{template_dir}}/scripts/installers/swift.sh",
                 "{{template_dir}}/scripts/installers/cmake.sh",
-                "{{template_dir}}/scripts/installers/codeql-bundle.sh",
                 "{{template_dir}}/scripts/installers/containers.sh",
                 "{{template_dir}}/scripts/installers/docker-compose.sh",
                 "{{template_dir}}/scripts/installers/docker-moby.sh",
-                "{{template_dir}}/scripts/installers/dotnetcore-sdk.sh",
                 "{{template_dir}}/scripts/installers/erlang.sh",
-                "{{template_dir}}/scripts/installers/firefox.sh",
                 "{{template_dir}}/scripts/installers/gcc.sh",
                 "{{template_dir}}/scripts/installers/gfortran.sh",
                 "{{template_dir}}/scripts/installers/git.sh",
                 "{{template_dir}}/scripts/installers/github-cli.sh",
-                "{{template_dir}}/scripts/installers/google-chrome.sh",
-                "{{template_dir}}/scripts/installers/google-cloud-sdk.sh",
                 "{{template_dir}}/scripts/installers/haskell.sh",
                 "{{template_dir}}/scripts/installers/heroku.sh",
                 "{{template_dir}}/scripts/installers/hhvm.sh",
@@ -202,20 +240,12 @@
                 "{{template_dir}}/scripts/installers/kind.sh",
                 "{{template_dir}}/scripts/installers/kubernetes-tools.sh",
                 "{{template_dir}}/scripts/installers/oc.sh",
-                "{{template_dir}}/scripts/installers/leiningen.sh",
-                "{{template_dir}}/scripts/installers/mercurial.sh",
                 "{{template_dir}}/scripts/installers/miniconda.sh",
                 "{{template_dir}}/scripts/installers/mono.sh",
-                "{{template_dir}}/scripts/installers/mysql.sh",
                 "{{template_dir}}/scripts/installers/mssql-cmd-tools.sh",
-                "{{template_dir}}/scripts/installers/nvm.sh",
                 "{{template_dir}}/scripts/installers/nodejs.sh",
-                "{{template_dir}}/scripts/installers/bazel.sh",
-                "{{template_dir}}/scripts/installers/oras-cli.sh",
                 "{{template_dir}}/scripts/installers/phantomjs.sh",
-                "{{template_dir}}/scripts/installers/php.sh",
                 "{{template_dir}}/scripts/installers/pollinate.sh",
-                "{{template_dir}}/scripts/installers/postgresql.sh",
                 "{{template_dir}}/scripts/installers/pulumi.sh",
                 "{{template_dir}}/scripts/installers/ruby.sh",
                 "{{template_dir}}/scripts/installers/r.sh",
@@ -228,14 +258,10 @@
                 "{{template_dir}}/scripts/installers/terraform.sh",
                 "{{template_dir}}/scripts/installers/packer.sh",
                 "{{template_dir}}/scripts/installers/vcpkg.sh",
-                "{{template_dir}}/scripts/installers/vercel.sh",
                 "{{template_dir}}/scripts/installers/dpkg-config.sh",
                 "{{template_dir}}/scripts/installers/mongodb.sh",
                 "{{template_dir}}/scripts/installers/rndgenerator.sh",
                 "{{template_dir}}/scripts/installers/swig.sh",
-                "{{template_dir}}/scripts/installers/netlify.sh",
-                "{{template_dir}}/scripts/installers/android.sh",
-                "{{template_dir}}/scripts/installers/azpowershell.sh",
                 "{{template_dir}}/scripts/installers/pypy.sh",
                 "{{template_dir}}/scripts/installers/python.sh"
             ],
@@ -291,7 +317,6 @@
         {
             "type": "shell",
             "pause_before": "30s",
-            "timeout": "10m",
             "start_retry_timeout": "10s",
             "scripts": [
                 "{{template_dir}}/scripts/installers/homebrew-validate.sh"
@@ -364,10 +389,17 @@
         {
             "type": "shell",
             "inline": [
-                "sleep 30",
-                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+                "sed -i -e 's/ens3/ens5/' /etc/netplan/01-netcfg.yaml"
             ],
             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+        }
+    ],
+    "post-processors": [
+        {
+            "keep_input_artifact": false,
+            "output": "/scratch/tmp/box/{{.Provider}}/ubuntu1804-1.box",
+            "type": "vagrant",
+            "vagrantfile_template": "{{ user `vagrantfile_template` }}"
         }
     ]
 }

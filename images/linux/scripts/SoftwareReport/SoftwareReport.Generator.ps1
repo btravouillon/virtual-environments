@@ -39,12 +39,10 @@ $markdown += New-MDList -Style Unordered -Lines @(
         (Get-ClangVersions),
         (Get-ErlangVersion),
         (Get-MonoVersion),
-        (Get-NodeVersion),
         (Get-PerlVersion),
         (Get-PythonVersion),
         (Get-Python3Version),
         (Get-RubyVersion),
-        (Get-SwiftVersion),
         (Get-JuliaVersion)
 )
 
@@ -85,9 +83,6 @@ $toolsList = @(
     (Get-AptFastVersion),
     (Get-AzCopy7Version),
     (Get-AzCopy10Version),
-    (Get-BazelVersion),
-    (Get-BazeliskVersion),
-    (Get-CodeQLBundleVersion),
     (Get-CMakeVersion),
     (Get-CurlVersion),
     (Get-DockerMobyVersion),
@@ -104,13 +99,9 @@ $toolsList = @(
     (Get-KindVersion),
     (Get-KubectlVersion),
     (Get-KustomizeVersion),
-    (Get-LeiningenVersion),
     (Get-MediainfoVersion),
     (Get-M4Version),
-    (Get-HGVersion),
     (Get-MinikubeVersion),
-    (Get-NewmanVersion),
-    (Get-NvmVersion),
     (Get-PackerVersion),
     (Get-PassVersion),
     (Get-PhantomJSVersion),
@@ -139,26 +130,16 @@ $markdown += New-MDList -Style Unordered -Lines ($toolsList | Sort-Object)
 $markdown += New-MDHeader "CLI Tools" -Level 3
 $markdown += New-MDList -Style Unordered -Lines @(
     (Get-AlibabaCloudCliVersion),
-    (Get-AWSCliVersion),
-    (Get-AWSCliSessionManagerPluginVersion),
-    (Get-AWSSAMVersion),
     (Get-AzureCliVersion),
     (Get-AzureDevopsVersion),
     (Get-GitHubCliVersion),
-    (Get-GoogleCloudSDKVersion),
     (Get-HubCliVersion),
-    (Get-NetlifyCliVersion),
     (Get-OCCliVersion),
-    (Get-ORASCliVersion),
     (Get-VerselCliversion)
 )
 
 $markdown += New-MDHeader "Java" -Level 3
 $markdown += Get-JavaVersions | New-MDTable
-$markdown += New-MDNewLine
-
-$markdown += New-MDHeader "PHP" -Level 3
-$markdown += Build-PHPTable | New-MDTable
 $markdown += New-MDNewLine
 
 $markdown += New-MDHeader "Haskell" -Level 3
@@ -186,46 +167,19 @@ $markdown += New-MDList -Style Unordered -Lines @(
     (Get-RustfmtVersion)
 )
 
-$markdown += New-MDHeader "Browsers and Drivers" -Level 3
-$markdown += New-MDList -Style Unordered -Lines @(
-    (Get-ChromeVersion),
-    (Get-ChromeDriverVersion),
-    (Get-FirefoxVersion),
-    (Get-GeckodriverVersion)
-)
-
-$markdown += New-MDHeader ".NET Core SDK" -Level 3
-$markdown += New-MDList -Style Unordered -Lines @(
-    (Get-DotNetCoreSdkVersions)
-)
-
-$markdown += New-MDHeader "Az Module" -Level 3
-$markdown += New-MDList -Style Unordered -Lines @(
-    (Get-AzModuleVersions)
-)
-
 $markdown += New-MDHeader "Databases" -Level 3
 $markdown += New-MDList -Style Unordered -Lines @(
-    (Get-PostgreSqlVersion),
     (Get-MongoDbVersion),
     (Get-SqliteVersion)
 )
 
-$markdown += Build-MySQLSection
 $markdown += Build-MSSQLToolsSection
-
-$markdown += New-MDHeader "Cached Tools" -Level 3
-$markdown += Build-CachedToolsSection
 
 $markdown += New-MDHeader "PowerShell Tools" -Level 3
 $markdown += New-MDList -Lines (Get-PowershellVersion) -Style Unordered
 
 $markdown += New-MDHeader "PowerShell Modules" -Level 4
 $markdown += Get-PowerShellModules | New-MDTable
-$markdown += New-MDNewLine
-
-$markdown += New-MDHeader "Android" -Level 3
-$markdown += Build-AndroidTable | New-MDTable
 $markdown += New-MDNewLine
 
 $markdown += New-MDHeader "Cached Docker images" -Level 3
